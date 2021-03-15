@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  - import_tasks: common-auth.yml
+
+  - include_tasks: ocp4-vm-tasks.yml
+    with_items:
+    - "{{ vms }}"
+    when: item.ocp_type == 'master'

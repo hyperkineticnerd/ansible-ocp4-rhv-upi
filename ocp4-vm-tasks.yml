@@ -1,0 +1,24 @@
+---
+- name: get base ignition config
+  set_fact:
+    base_ignition: "{{ lookup('file', ocp.assets_dir+'/'+item.ocp_type+'.ign') | from_json }}"
+
+- name: generate Static IP Ignition configuration
+  set_fact:
+    static_ip_ignition: "{{ lookup('template', 'static_ip.ign.j2') }}"
+
+- name: add static ip to base
+  set_fact:
+    new_base_ignition: "{{ base_ignition | combine(static_ip_ignition, recursive=true, list_merge='append_rp') }}"
+
+- name: Start {{ item.ocp_type }} VM
+  ovirt.ovirt.ovirt_vm:
+    auth: "{{ ovirt_auth }}"
+    cluster: "{{ item.profile.cluster }}"
+    name: "{{ item.name }}"
+    state: running
+    cloud_init_persist: True
+    cloud_init:
+      custom_script: "{{ new_base_ignition | to_json | string }}"
+  async: 60
+  poll: 0

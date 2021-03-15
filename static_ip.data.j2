@@ -1,0 +1,11 @@
+[connection]
+type=ethernet
+id='Custom interface'
+interface-name={{ rhcos.ifname }}
+
+[ipv4]
+method=manual
+addresses={{ item.node_ip_address }}/16
+gateway={{ ocp.cluster_gateway }}
+dns={{ ocp.cluster_dns | replace(' ', ';') }}
+dns-search={{ ocp.cluster_name }}.{{ ocp.cluster_domain }}

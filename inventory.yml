@@ -1,0 +1,103 @@
+---
+all:
+  vars:
+    ovirt_cluster: "Default"
+    ovirt_storage_domain: "ocp4_storage_host1"
+
+    ocp:
+      assets_dir: "{{ lookup('env', 'ASSETS_DIR') }}"
+      ovirt_config_path: "{{ lookup('env', 'HOME') }}/.ovirt/ovirt-config.yaml"
+      cluster_netmask: "255.255.0.0"
+      cluster_dns: "172.16.3.5 172.16.3.4"
+      cluster_gateway: "172.24.0.1"
+      cluster_domain: "hkn.lab"
+      cluster_name: "ocp4"
+
+    rhcos:
+      ifname: enp3s0
+      image_url: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.7/4.7.0/rhcos-4.7.0-x86_64-openstack.x86_64.qcow2.gz"
+      local_cmp_image_path: "/tmp/rhcos.qcow2.gz"
+      local_image_path: "/tmp/rhcos.qcow2"
+
+    control_plane:
+      cluster: "{{ ovirt_cluster }}"
+      memory: 16GiB
+      sockets: 4
+      cores: 1
+      template: rhcos_tpl
+      operating_system: "rhcos_x64"
+      type: server # high_performance
+      graphical_console:
+        headless_mode: false
+        protocol:
+        - spice
+        - vnc
+      disks:
+      - size: 120GiB
+        name: os
+        interface: virtio_scsi
+        storage_domain: ocp4_storage_host1 # depot_nvme
+      nics:
+      - name: nic1
+        network: OCP4
+        profile: OCP4
+
+    compute:
+      cluster: "{{ ovirt_cluster }}"
+      memory: 16GiB
+      sockets: 4
+      cores: 1
+      template: worker_rhcos_tpl
+      operating_system: "rhcos_x64"
+      type: server # high_performance
+      graphical_console:
+        headless_mode: false
+        protocol:
+        - spice
+        - vnc
+      disks:
+      - size: 120GiB
+        name: os
+        interface: virtio_scsi
+        storage_domain: ocp4_storage_host1 # depot_nvme
+      nics:
+      - name: nic1
+        network: OCP4
+        profile: OCP4
+
+    vms:
+    - name: "{{ metadata.infraID }}-bootstrap"
+      ocp_type: bootstrap
+      profile: "{{ control_plane }}"
+      type: server
+      node_ip_address: "172.24.1.9"
+
+    - name: "{{ metadata.infraID }}-master0"
+      ocp_type: master
+      profile: "{{ control_plane }}"
+      node_ip_address: "172.24.1.11"
+
+    - name: "{{ metadata.infraID }}-master1"
+      ocp_type: master
+      profile: "{{ control_plane }}"
+      node_ip_address: "172.24.1.12"
+
+    - name: "{{ metadata.infraID }}-master2"
+      ocp_type: master
+      profile: "{{ control_plane }}"
+      node_ip_address: "172.24.1.13"
+
+    - name: "{{ metadata.infraID }}-worker0"
+      ocp_type: worker
+      profile: "{{ compute }}"
+      node_ip_address: "172.24.1.21"
+
+    - name: "{{ metadata.infraID }}-worker1"
+      ocp_type: worker
+      profile: "{{ compute }}"
+      node_ip_address: "172.24.1.22"
+
+    - name: "{{ metadata.infraID }}-worker2"
+      ocp_type: worker
+      profile: "{{ compute }}"
+      node_ip_address: "172.24.1.23"

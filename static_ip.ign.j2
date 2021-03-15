@@ -1,0 +1,25 @@
+{
+  "storage": {
+    "files": [
+      {
+        "overwrite": true,
+        "path": "/etc/NetworkManager/system-connections/{{ rhcos.ifname }}.nmconnection",
+        "user": {
+          "name": "root"
+        },
+        "contents": {
+          "source": "data:text/plain;charset=utf-8;base64,{{ lookup('template', 'static_ip.data.j2') | string | b64encode }}"
+        },
+        "mode": 384
+      },
+      {
+        "path": "/etc/hostname",
+        "mode": 420,
+        "overwrite": true,
+        "contents": { 
+          "source": "data:,{{ item.name }}.{{ ocp.cluster_name }}.{{ ocp.cluster_domain }}"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  - import_tasks: common-auth.yml
+
+  - name: Loop VMs
+    include_tasks: ignition-tasks.yml
+    with_items:
+    - "{{ vms }}"
+    when: item.ocp_type == "bootstrap"
+
+  # - name: generate Static IP Ignition configuration
+  #   set_fact:
+  #     static_ip_ignition: "{{ lookup('template', 'static_ip.ign.j2') }}"
+  #   loop: "{{ vms }}"
+  #   when: item.ocp_type == "bootstrap"
+
+  # - name: Append Static IP Ignition to Ignition Manifest
